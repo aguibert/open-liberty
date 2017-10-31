@@ -19,7 +19,5 @@
   com.ibm.websphere.appserver.el-3.0;version=latest,\
   com.ibm.websphere.appserver.transaction-1.2;version=latest,\
   com.ibm.websphere.appserver.javax.interceptor-1.2;version=latest,\
-  com.ibm.websphere.appserver.internal.slf4j-1.7.7;version=latest,\
-  com.ibm.ws.org.apache.commons.weaver;version=latest,\
   com.ibm.ws.beanvalidation.v11;version=latest,\
-  com.ibm.ws.org.apache.bval.1.1.0;version=latest
+  com.ibm.ws.org.hibernate.validator;version=latest

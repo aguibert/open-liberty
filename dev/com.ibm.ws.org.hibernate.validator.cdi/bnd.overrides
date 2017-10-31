@@ -1,0 +1,30 @@
+-include= ~../cnf/resources/bnd/rejar.props
+
+bVersion=1.0
+
+Bundle-Name: Hibernate Validator Portable Extension
+Bundle-SymbolicName: com.ibm.ws.org.hibernate.validator.cdi.6.0.4.Final
+Bundle-Description: Hibernate Validator CDI Portable Extension
+
+Export-Package: \
+  org.hibernate.validator.cdi;version="6.0.4.Final";uses:="javax.enterprise.event,javax.enterprise.inject.spi,javax.inject,javax.validation,javax.validation.executable";thread-context=true
+
+Import-Package: \
+  javax.validation;version="[2.0,3.0)", \
+  javax.validation.bootstrap;version="[2.0,3.0)", \
+  javax.validation.executable;version="[2.0,3.0)", \
+  javax.validation.metadata;version="[2.0,3.0)", \
+  javax.validation.valueextraction;version="[2.0,3.0)", \
+  javax.annotation;version="[1.2,2.0)", \
+  javax.interceptor;version="[1.2,2.0)", \
+  javax.enterprise.context;version="[1.2,3.0)", \
+  javax.enterprise.context.spi;version="[1.2,3.0)", \
+  javax.enterprise.event;version="[1.2,3.0)", \
+  javax.enterprise.inject;version="[1.2,3.0)", \
+  javax.enterprise.inject.spi;version="[1.2,3.0)", \
+  javax.enterprise.util;version="[1.2,3.0)", \
+  javax.inject
+
+#Include-Resource: \
+#  @${repo;org.hibernate.validator:hibernate-validator;6.0.4.Final}!/!META-INF/*
+
