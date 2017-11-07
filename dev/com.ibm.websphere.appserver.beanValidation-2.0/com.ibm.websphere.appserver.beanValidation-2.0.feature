@@ -18,6 +18,7 @@ IBM-ShortName: beanValidation-2.0
 Subsystem-Name: Bean Validation 2.0
 -features=com.ibm.websphere.appserver.javax.cdi-2.0, \
  com.ibm.websphere.appserver.beanValidationCore-1.0, \
+ com.ibm.websphere.appserver.classloading-1.0,\
  com.ibm.websphere.appserver.javax.validation-2.0, \
  com.ibm.websphere.appserver.el-3.0, \
  com.ibm.websphere.appserver.transaction-1.2, \

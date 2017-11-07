@@ -8,15 +8,13 @@
     Contributors:
         IBM Corporation - initial API and implementation
  -->
-<server>
+<beans xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
+   version="1.1" 
+   bean-discovery-mode="all">
+    <scan>
+        <exclude name="org.apache.bval.cdi.BValInterceptor" />
+    </scan>
+</beans>
 
-	<featureManager>
-		<feature>beanValidation-2.0</feature>
-		<feature>cdi-2.0</feature>
-		<feature>servlet-4.0</feature>
-		<feature>jndi-1.0</feature>
-	    <feature>componenttest-1.0</feature>
-    </featureManager>
-    
-    <include location="../fatTestPorts.xml"/>
-</server>

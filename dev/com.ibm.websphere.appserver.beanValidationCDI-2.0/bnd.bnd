@@ -8,11 +8,10 @@
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
--include= jar:${fileuri;${repo;org.hibernate.validator:hibernate-validator-cdi;6.0.4.Final}}!/META-INF/MANIFEST.MF,bnd.overrides
+-include= ~../cnf/resources/bnd/liberty-release.props
 
-instrument.disabled: true
+-nobundles=true
 
--buildpath: \
-  com.ibm.ws.org.hibernate.validator.6.0.4.Final;version=latest,\
-  com.ibm.ws.org.jboss.logging.3.3.0;version=latest,\
-  org.hibernate.validator:hibernate-validator-cdi;version=6.0.4.Final
+-dependson: \
+	com.ibm.ws.beanvalidation.v20.cdi;version=latest,\
+	com.ibm.ws.org.hibernate.validator.cdi;version=latest
