@@ -42,7 +42,13 @@ Export-Package: \
   org.hibernate.validator.spi.cfg;version="6.0.4.Final";uses:="org.hibernate.validator.cfg";thread-context=true, \
   org.hibernate.validator.spi.group;version="6.0.4.Final";thread-context=true, \
   org.hibernate.validator.spi.resourceloading;version="6.0.4.Final";thread-context=true, \
-  org.hibernate.validator.spi.scripting;version="6.0.4.Final";uses:="javax.script,javax.validation";thread-context=true
+  org.hibernate.validator.spi.scripting;version="6.0.4.Final";uses:="javax.script,javax.validation";thread-context=true,\
+  org.hibernate.validator.internal.util.classhierarchy;version="6.0.4.Final",\
+  org.hibernate.validator.internal.util.privilegedactions;version="6.0.4.Final",\
+  org.hibernate.validator.internal.engine;version="6.0.4.Final",\
+  org.hibernate.validator.internal.engine.valueextraction;version="6.0.4.Final",\
+  org.hibernate.validator.internal.util;version="6.0.4.Final",\
+  org.hibernate.validator.internal.util.logging;version="6.0.4.Final"
 
 Import-Package: \
   !javax.persistence, \
@@ -95,3 +101,15 @@ DynamicImport-Package: \
 Include-Resource: \
   @${repo;org.hibernate.validator:hibernate-validator;6.0.4.Final}!/META-INF/*.xsd, \
   META-INF/services=resources/META-INF/services
+  
+Service-Component:\
+  org.hibernate.validator.HibernateValidator;\
+    implementation:=org.hibernate.validator.HibernateValidator;\
+    provide:=javax.validation.spi.ValidationProvider;\
+    configuration-policy:=ignore;\
+    properties:='implementation.class=org.hibernate.validator.HibernateValidator',\
+  com.ibm.ws.org.hibernate.validator.ResourceProvider; \
+    implementation:=com.ibm.wsspi.classloading.ResourceProvider; \
+    provide:=com.ibm.wsspi.classloading.ResourceProvider; \
+    configuration-policy:=ignore; \
+    properties:="resources=${app-resources}"

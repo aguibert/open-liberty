@@ -23,7 +23,7 @@ import org.junit.Test;
 import componenttest.app.FATServlet;
 
 @SuppressWarnings("serial")
-@WebServlet("/TestServletA")
+@WebServlet("/BeanVal20TestServlet")
 public class BeanVal20TestServlet extends FATServlet {
 
     @Resource(name = "TestValidatorFactory")
