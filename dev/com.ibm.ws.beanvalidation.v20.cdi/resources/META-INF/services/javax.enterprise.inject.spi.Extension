@@ -1,1 +1,1 @@
-com.ibm.ws.beanvalidation.v20.cdi.internal.ValidationExtension
+com.ibm.ws.beanvalidation.v20.cdi.internal.LibertyHibernateValidatorExtension

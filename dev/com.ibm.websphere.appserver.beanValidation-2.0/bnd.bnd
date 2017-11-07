@@ -13,6 +13,7 @@
 -nobundles=true
 
 -dependson: \
+  com.ibm.websphere.appserver.beanValidationCDI-2.0,\
   com.ibm.ws.beanvalidation.v11;version=latest,\
   com.ibm.ws.org.hibernate.validator;version=latest,\
   com.ibm.ws.org.jboss.logging.3.3.0;version=latest,\
