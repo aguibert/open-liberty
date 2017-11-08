@@ -10,8 +10,19 @@
  *******************************************************************************/
 package com.ibm.ws.beanvalidation.v20.cdi.internal;
 
-import javax.el.ELManager;
-import javax.el.ExpressionFactory;
+import javax.enterprise.event.Observes;
+import javax.enterprise.inject.spi.AfterBeanDiscovery;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.BeforeBeanDiscovery;
+import javax.enterprise.inject.spi.Extension;
+import javax.enterprise.inject.spi.ProcessAnnotatedType;
+import javax.enterprise.inject.spi.ProcessBean;
+import javax.enterprise.inject.spi.ProcessInjectionPoint;
+import javax.enterprise.inject.spi.WithAnnotations;
+import javax.validation.Constraint;
+import javax.validation.Valid;
+import javax.validation.Validator;
+import javax.validation.executable.ValidateOnExecution;
 
 import org.hibernate.validator.cdi.ValidationExtension;
 import org.osgi.service.component.annotations.Activate;
@@ -20,83 +31,59 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import com.ibm.ws.cdi.extension.WebSphereCDIExtension;
 
-@Component(configurationPolicy = ConfigurationPolicy.IGNORE)
-public class LibertyHibernateValidatorExtension implements WebSphereCDIExtension {
+@Component(configurationPolicy = ConfigurationPolicy.IGNORE,
+           immediate = true,
+           property = { "api.classes=" +
+                        "javax.validation.Validator;" +
+                        "javax.validation.ValidatorFactory;" +
+                        "org.hibernate.validator.cdi.HibernateValidator;" +
+                        "org.hibernate.validator.cdi.ValidationExtension;" +
+                        "org.hibernate.validator.internal.engine.ValidatorImpl;" +
+                        "org.hibernate.validator.cdi.internal.interceptor.ValidationInterceptor",
+                        "service.vendor=IBM"
+           })
+public class LibertyHibernateValidatorExtension implements Extension, WebSphereCDIExtension {
 
     private ValidationExtension delegate;
 
     @Activate
     protected void activate() {
         System.out.println("@AGG activating " + getClass().getSimpleName());
-
-        System.out.println("@AGG can we get EL expression factory?");
-        System.out.println(ExpressionFactory.newInstance());
-        System.out.println(ELManager.getExpressionFactory());
     }
 
     private void initHibernateValidator() {
-        ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        System.out.println("@AGG TCCL is: " + tccl);
-//
-//        URL url = tccl.getResource("META-INF/services/javax.validation.spi.ValidationProvider");
-//        System.out.println("Got meta-inf resource: " + url);
-//
-//        System.out.println("Attempt to load hibernate validator...");
-//        try {
-//            System.out.println("Got class: " + Class.forName("org.hibernate.validator.HibernateValidator"));
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace(System.out);
-//        }
-//
-//        System.out.println("Attempt to load hibernate validator...");
-//        try {
-//            System.out.println("Got class: " + Class.forName("org.hibernate.validator.HibernateValidator", false, tccl));
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace(System.out);
-//        }
-//
-//        for (ValidationProvider<?> provider : ServiceLoader.load(ValidationProvider.class, tccl)) {
-//            System.out.println("With tccl, found: " + provider);
-//        }
-
-//        System.out.println("Found providers: " + loadProviders(tccl));
-
-        if (delegate == null)
+        if (delegate == null) {
+            System.out.println("@AGG initializing hibernate ValidationExtension");
             delegate = new ValidationExtension();
+        }
     }
 
-//    private List<ValidationProvider<?>> loadProviders(ClassLoader classloader) {
-//        ServiceLoader<ValidationProvider> loader = ServiceLoader.load(ValidationProvider.class, classloader);
-//        Iterator<ValidationProvider> providerIterator = loader.iterator();
-//        List<ValidationProvider<?>> validationProviderList = new ArrayList();
-//        while (providerIterator.hasNext()) {
-//            try {
-//                validationProviderList.add(providerIterator.next());
-//            } catch (ServiceConfigurationError localServiceConfigurationError) {
-//            }
-//        }
-//        return validationProviderList;
-//    }
-//
-//    public void afterBeanDiscovery(@Observes AfterBeanDiscovery afterBeanDiscoveryEvent, BeanManager beanManager) {
-//        initHibernateValidator();
-//        delegate.afterBeanDiscovery(afterBeanDiscoveryEvent, beanManager);
-//    }
-//
-//    public void beforeBeanDiscovery(@Observes BeforeBeanDiscovery beforeBeanDiscoveryEvent, BeanManager beanManager) {
-//        initHibernateValidator();
-//        delegate.beforeBeanDiscovery(beforeBeanDiscoveryEvent, beanManager);
-//    }
-//
-//    public <T> void processAnnotatedType(@Observes @WithAnnotations({ Constraint.class, Valid.class,
-//                                                                      ValidateOnExecution.class }) ProcessAnnotatedType<T> processAnnotatedTypeEvent) {
-//        initHibernateValidator();
-//        delegate.processAnnotatedType(processAnnotatedTypeEvent);
-//    }
-//
-//    public void processBean(@Observes ProcessBean<?> processBeanEvent) {
-//        initHibernateValidator();
-//        delegate.processBean(processBeanEvent);
-//    }
+    public void afterBeanDiscovery(@Observes AfterBeanDiscovery afterBeanDiscoveryEvent, BeanManager beanManager) {
+        initHibernateValidator();
+        delegate.afterBeanDiscovery(afterBeanDiscoveryEvent, beanManager);
+    }
+
+    public void beforeBeanDiscovery(@Observes BeforeBeanDiscovery beforeBeanDiscoveryEvent, BeanManager beanManager) {
+        initHibernateValidator();
+        System.out.println("@AGG beforeBeanDiscovery:  " + beforeBeanDiscoveryEvent);
+        delegate.beforeBeanDiscovery(beforeBeanDiscoveryEvent, beanManager);
+    }
+
+    public <T> void processAnnotatedType(@Observes @WithAnnotations({ Constraint.class, Valid.class,
+                                                                      ValidateOnExecution.class }) ProcessAnnotatedType<T> processAnnotatedTypeEvent) {
+        initHibernateValidator();
+        System.out.println("@AGG processAnnotatedType: " + processAnnotatedTypeEvent.getAnnotatedType());
+        delegate.processAnnotatedType(processAnnotatedTypeEvent);
+    }
+
+    public void processBean(@Observes ProcessBean<?> processBeanEvent) {
+        initHibernateValidator();
+        System.out.println("@AGG processBean:          " + processBeanEvent.getBean());
+        delegate.processBean(processBeanEvent);
+    }
+
+    public void processInjectionPoint(@Observes ProcessInjectionPoint<?, Validator> pip, BeanManager beanManager) {
+        System.out.println("@AGG processInjectionPoint:" + pip.getInjectionPoint());
+    }
 
 }
