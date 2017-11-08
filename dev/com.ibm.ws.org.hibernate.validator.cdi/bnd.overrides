@@ -11,10 +11,14 @@ Import-Package: \
   *
   
 Private-Package: \
-  org.hibernate.validator.cdi.internal.*
+  org.hibernate.validator.cdi.internal.*,\
+  com.ibm.ws.beanvalidation.v20.cdi.*
   
 #-dsannotations: \
 #  org.hibernate.validator.cdi.ValidationExtension
+
+-dsannotations: \
+  com.ibm.ws.beanvalidation.v20.cdi.internal.LibertyHibernateValidatorExtension
 
 #Service-Component: \
 #  com.ibm.ws.org.hibernate.validator.cdi.cdiextension; \
@@ -29,4 +33,5 @@ Private-Package: \
 #         org.hibernate.validator.cdi.HibernateValidator"
         
 Include-Resource: \
-  @${repo;org.hibernate.validator:hibernate-validator;6.0.4.Final}!/META-INF/services/*
+  @${repo;org.hibernate.validator:hibernate-validator;6.0.4.Final}!/META-INF/services/*,\
+  @${repo;org.hibernate.validator:hibernate-validator-cdi;6.0.4.Final}!/META-INF/services/*
