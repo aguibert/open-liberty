@@ -12,6 +12,7 @@ package componenttest.custom.junit.runner;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,24 +31,27 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
+import org.junit.runner.manipulation.Filter;
+import org.junit.runners.model.Statement;
 
 import org.junit.ClassRule;
 import org.junit.internal.AssumptionViolatedException;
-import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkField;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.MultipleFailureException;
-import org.junit.runners.model.Statement;
 
 import com.ibm.websphere.simplicity.Machine;
 import com.ibm.websphere.simplicity.RemoteFile;
 import com.ibm.websphere.simplicity.config.HttpEndpoint;
 import com.ibm.websphere.simplicity.config.IncludeElement;
 import com.ibm.websphere.simplicity.config.ServerConfiguration;
-import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.ExpectedFFDC;
@@ -74,6 +78,8 @@ public class FATRunner extends BlockJUnit4ClassRunner {
     private static final boolean ENABLE_TMP_DIR_CHECKING = PrivHelper.getBoolean("enable.tmpdir.checking");
     private static final long TMP_DIR_SIZE_THRESHOLD = 20 * 1024; // 20k
 
+    private static final Logger Log = Logger.getLogger(FATRunner.class.getName());
+
     //list of filters to apply
     private static final Filter[] testFiltersToApply = new Filter[] {
                                                                       new TestModeFilter(),
@@ -86,8 +92,11 @@ public class FATRunner extends BlockJUnit4ClassRunner {
     private static final Set<String> classesUsingFATRunner = new HashSet<String>();
 
     static {
-        Log.info(c, "<clinit>", "System property: fat.test.localrun=" + FAT_TEST_LOCALRUN);
-        Log.info(c, "<clinit>", "Using filters " + Arrays.toString(testFiltersToApply));
+        try {
+            LogManager.getLogManager().readConfiguration(new FileInputStream("./logging.properties"));
+        } catch(Exception ignore) {}
+        Log.info("System property: fat.test.localrun=" + FAT_TEST_LOCALRUN);
+        Log.info("Using filters " + Arrays.toString(testFiltersToApply));
     }
 
     public static void requireFATRunner(String className) {
@@ -130,7 +139,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
         } catch (NoTestsRemainException e) {
             //swallow this exception, because we might have Test classes that contain only tests that
             // run in a mode we aren't currently in log a warning so we know
-            Log.warning(this.getClass(), "All tests were filtered out for class " + getTestClass().getName());
+            Log.warning("All tests were filtered out for class " + getTestClass().getName());
             //set the flag so we can shortcut and avoid wasting time on @BeforeClass etc for stuff we aren't going to run any tests for
             hasTests = false;
         }
@@ -178,7 +187,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                 }
                 Map<String, Long> tmpDirFilesBeforeTest = createDirectorySnapshot("/tmp");
                 try {
-                    Log.info(c, "evaluate", "entering " + getTestClass().getName() + "." + method.getName());
+                    Log.info("entering " + getTestClass().getName() + "." + method.getName());
 
                     Map<String, FFDCInfo> ffdcBeforeTest = retrieveFFDCCounts();
 
@@ -240,14 +249,13 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                     }
                 } catch (Throwable t) {
                     if (t instanceof AssumptionViolatedException) {
-                        Log.info(c, "evaluate", "assumption violated: " + t);
+                        Log.info("assumption violated: " + t);
                     } else {
-                        Log.error(c, "evaluate", t);
+                        Log.log(Level.SEVERE, "", t);
                         if (t instanceof MultipleFailureException) {
-                            Log.info(c, "evaluate", "Multiple failure");
                             MultipleFailureException e = (MultipleFailureException) t;
                             for (Throwable t2 : e.getFailures()) {
-                                Log.error(c, "evaluate", t2, "Specific failure:");
+                                Log.log(Level.SEVERE, "Specific failure:", t2);
                             }
                         }
                     }
@@ -255,7 +263,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                 } finally {
                     Map<String, Long> tmpDirFilesAfterTest = createDirectorySnapshot("/tmp");
                     compareDirectorySnapshots("/tmp", tmpDirFilesBeforeTest, tmpDirFilesAfterTest);
-                    Log.info(c, "evaluate", "exiting " + getTestClass().getName() + "." + method.getName());
+                    Log.info("exiting " + getTestClass().getName() + "." + method.getName());
                 }
             }
 
@@ -396,7 +404,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
             } catch (FileNotFoundException e) {
                 // This is fine - it just means the file didn't exist on this server
             } catch (Exception e) {
-                Log.warning(this.getClass(), "Difficulties encountered searching for exceptions in FFDC logs: " + e);
+                Log.warning("Difficulties encountered searching for exceptions in FFDC logs: " + e);
                 return "[Could not read file contents because of unexpected exception: " + e + "]";
             }
         }
@@ -426,7 +434,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
             }
             return lines.toString();
         } catch (Exception e) {
-            Log.error(this.getClass(), "Could not read " + ffdcLogFile, e);
+            Log.log(Level.SEVERE, "Could not read " + ffdcLogFile, e);
             return "[Could not read " + ffdcLogFile + ": " + e + "]";
         } finally {
             if (reader != null) {
@@ -451,7 +459,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
 
                 // If the server has the FFDC checking flag set to false, skip it.
                 if (server.getFFDCChecking() == false) {
-                    Log.info(c, "retrieveFFDCCounts", "FFDC log collection for server: " + server.getServerName() + " is skipped. FFDC Checking is disabled for this server.");
+                    Log.info("FFDC log collection for server: " + server.getServerName() + " is skipped. FFDC Checking is disabled for this server.");
                     break;
                 }
 
@@ -478,7 +486,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                                 }
                                 retry = false;
                             } else {
-                                Log.info(c, "retrieveFFDCCounts", "Read incomplete FFDC summary file, readAttempts = " + readAttempts);
+                                Log.info("Read incomplete FFDC summary file, readAttempts = " + readAttempts);
                                 //returned null, file is truncated
                                 retry = true;
                                 //wait a bit and retry
@@ -488,22 +496,21 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                     } catch (TopologyException e) {
                         retry = false;
                     } catch (Exception e) {
-                        Log.info(c, "retrieveFFDCCounts", "Exception parsing FFDC summary");
-                        Log.error(c, "retrieveFFDCCounts", e);
+                        Log.log(Level.SEVERE, "", e);
                         retry = false;
                     }
                 }
                 // Only bother logging if a failure was previously logged
                 if (readAttempts > 1 && !retry) {
-                    Log.info(c, "retrieveFFDCCounts", "Retry Successful");
+                    Log.info("Retry Successful");
                 } else if (retry) {
                     //retry failed 5 times
-                    Log.info(c, "retrieveFFDCCounts", "Retry Unsuccessful");
+                    Log.info("Retry Unsuccessful");
                 }
             }
         } catch (Exception e) {
             //Exception obtaining Liberty servers
-            Log.error(c, "retrieveFFDCCounts", e);
+            Log.log(Level.SEVERE, "retrieveFFDCCounts", e);
         }
         return ffdcPrimaryInfo;
     }
@@ -555,7 +562,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                         }
 
                     } else {
-                        Log.warning(this.getClass(), "Failed to match FFDC line: " + line);
+                        Log.warning("Failed to match FFDC line: " + line);
                     }
 
                     line = reader.readLine();
@@ -584,11 +591,11 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                 } catch (TopologyException e) {
                     //ignore the exception as log directory doesn't exist and no FFDC log
                 } catch (Exception e) {
-                    Log.error(c, "retrieveFFDCLogs", e);
+                    Log.log(Level.SEVERE, "retrieveFFDCLogs", e);
                 }
             }
         } catch (Exception e) {
-            Log.error(c, "retrieveFFDCLogs", e);
+            Log.log(Level.SEVERE, "", e);
         }
         return ffdcList;
     }
@@ -655,18 +662,18 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                     HttpEndpoint http = config.getHttpEndpoints().getById("defaultHttpEndpoint");
                     IncludeElement include = config.getIncludes().getBy("location", "../fatTestPorts.xml");
                     if (http != null) {
-                        Log.info(c, method, "Using ports from <httpEndpoint> element in " + serverName + " server.xml");
+                        Log.info("Using ports from <httpEndpoint> element in " + serverName + " server.xml");
                         // If there is an <httpEndpoint> element in the server config, use those ports
                         serv.setHttpDefaultPort(http.getHttpPort());
                         serv.setHttpDefaultSecurePort(http.getHttpsPort());
                     } else if (include != null) {
-                        Log.info(c, method, "Using BVT HTTP port defaults in fatTestPorts.xml for " + serverName);
+                        Log.info("Using BVT HTTP port defaults in fatTestPorts.xml for " + serverName);
                         serv.setHttpDefaultPort(8010);
                         serv.setHttpDefaultSecurePort(8020);
                         serv.setHttpSecondaryPort(8030);
                         serv.setHttpSecondarySecurePort(8040);
                     } else {
-                        Log.info(c, method, "No http endpoint.  Using defaultInstance config for " + serverName);
+                        Log.info("No http endpoint.  Using defaultInstance config for " + serverName);
                         serv.setHttpDefaultPort(9080);
                         serv.setHttpDefaultSecurePort(9443);
                     }
@@ -678,7 +685,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                 }
                 serv.setConsoleLogName(testClass.getSimpleName() + ".log");
                 serverField.set(testClass, serv);
-                Log.info(c, method, "Injected LibertyServer " + serv.getServerName() + " to class " + testClass.getCanonicalName());
+                Log.info("Injected LibertyServer " + serv.getServerName() + " to class " + testClass.getCanonicalName());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -716,7 +723,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
             return;
 
         if (before.isEmpty() || after.isEmpty()) {
-            Log.info(c, method, "Unable to calculate directories for " + path);
+            Log.info("Unable to calculate directories for " + path);
             return;
         }
 
@@ -732,10 +739,10 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                     long difference = afterFileSize - beforeFileSize;
                     sizeDiff += difference;
                     if (difference > 0) {
-                        Log.info(c, method, fileName + " grew by " + difference + " bytes.");
+                        Log.info(fileName + " grew by " + difference + " bytes.");
                     } else if (difference < 0) {
                         // using debug here, because we'll rarely care when a file takes up _less_ space
-                        Log.debug(c, method + " " + fileName + " shrank by " + difference + " bytes.");
+                        Log.fine(fileName + " shrank by " + difference + " bytes.");
                     }
                 }
             }
@@ -747,7 +754,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
             if (size != null) {
                 sizeDiff += size;
             }
-            Log.info(c, method, "New file found during test class execution: + " + entry.getKey() + " size: " + size + " bytes.");
+            Log.info("New file found during test class execution: + " + entry.getKey() + " size: " + size + " bytes.");
         }
 
         // While it is possible that a file was deleted during the test class execution, this is probably pretty rare,

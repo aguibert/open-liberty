@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<server description="Generation date: Wed Dec 27 22:46:24 CST 2017 (this is some random text to make the file size bigger) (this is some random text to make the file size bigger) (this is some random text to make the file size bigger)">
+    <featureManager>
+        <feature>componenttest-1.0</feature>
+        <feature>servlet-4.0</feature>
+    </featureManager>
+    <application location="app1.war"/>
+    <include location="../fatTestPorts.xml"/>
+</server>
