@@ -1,0 +1,53 @@
+###############################################################################
+# Copyright (c) 2018 IBM Corporation and others.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors:
+#     IBM Corporation - initial API and implementation
+###############################################################################
+# DO NOT TRANSLATE "\n" and "\t" characters.  these are for textual formatting.
+# REMINDER: if message has substitution parameters, then any apostrophe in the message text
+#           must be followed by a 2nd apostrophe to work correctly.
+# -------------------------------------------------------------------------------------------------
+# This file has been modified to follow the WebSphere Message Guidelines.
+#
+# Briefly:
+#     MESSAGE_ID=<ComponentPrefix><MessageNumber><TypeCode>: <MessageText>
+#
+# The prefix for this component is:
+#     MTDT (Metadata Framework)
+#
+# Message numbers are four digit numbers, from '0000' to '9999', inclusive.
+# Message numbers are filled to the left with '0', to a width of 4.
+#
+# Valid message type codes are:
+#     I (Informational)
+#     W (Warning)
+#     E (Error)
+#
+# Note the ": " that appears between the type code and the message text.
+#
+# -----------------------------------------------------------------------
+# This file has been modified to follow the WebSphere Message Guidelines.
+# cmvc_en_version_level=
+#
+#
+#CMVCPATHNAME ws/code/beanvalidation/src/com/ibm/ws/beanvalidation/resources/nls/BVNLSMessages.nlsprops
+#COMPONENTPREFIX CWNBV
+#COMPONENTNAMEFOR CWNBV Bean Validation
+#ISMESSAGEFILE TRUE
+#NLS_ENCODING=UNICODE
+#NLS_MESSAGEFORMAT_VAR
+
+# -----------------------------------------------------------------------
+# PARAMETERS:
+#    {0} is the exception that caused this message to be displayed
+# -----------------------------------------------------------------------
+#UNABLE_TO_REGISTER_WITH_CDI=CWNBV0200E: An error occurred while registering application {0} with the Bean Validatoin and CDI runtime.
+#BVKEY_UNABLE_TO_REGISTER_WITH_INJECTION_ENGINE=CWNBV0200E: During server start the BeanValidationService failed to register with the injection service. Applications requiring injection of either a ValidatorFactory class or a Validator class will fail. The following error occurred: {0}.
+#BVKEY_UNABLE_TO_REGISTER_WITH_INJECTION_ENGINE.explanation=The BeanValidationService failed to register with the injection engine when the application server started. The failure is unexpected. A possible cause is that the injection service has not been started.
+#BVKEY_UNABLE_TO_REGISTER_WITH_INJECTION_ENGINE.useraction=Correct any previous errors and ensure that the injection service has been started. If the injection service is available and you continue to have the problem, see the problem determination information. This information is available on the WebSphere Application Server Support web page at http://www.ibm.com/software/webservers/appserv/was/support.
+

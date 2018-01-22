@@ -68,6 +68,7 @@ public class LibertyHibernateValidatorExtension implements Extension, WebSphereC
     @Reference
     protected ClassLoadingService classLoadingService;
 
+    private boolean logggedWarning;
     private ValidatorFactoryBean vfBean;
     private ValidatorBean vBean;
     private ValidationExtension extDelegate;
@@ -128,11 +129,19 @@ public class LibertyHibernateValidatorExtension implements Extension, WebSphereC
 
     public void beforeBeanDiscovery(@Observes BeforeBeanDiscovery beforeBeanDiscoveryEvent,
                                     final BeanManager beanManager) {
-        delegate(null).beforeBeanDiscovery(beforeBeanDiscoveryEvent, beanManager);
+        try {
+            delegate(null).beforeBeanDiscovery(beforeBeanDiscoveryEvent, beanManager);
+        } catch (Exception e) {
+            delegateFailed(e);
+        }
     }
 
     public void processBean(@Observes ProcessBean<?> processBeanEvent) {
-        delegate(null).processBean(processBeanEvent);
+        try {
+            delegate(null).processBean(processBeanEvent);
+        } catch (Exception e) {
+            delegateFailed(e);
+        }
     }
 
     public <T> void processAnnotatedType(@Observes @WithAnnotations({
@@ -142,7 +151,11 @@ public class LibertyHibernateValidatorExtension implements Extension, WebSphereC
     }) ProcessAnnotatedType<T> processAnnotatedTypeEvent) {
         Class<?> javaClass = processAnnotatedTypeEvent.getAnnotatedType().getJavaClass();
         String moduleName = getModuleName(javaClass);
-        delegate(moduleName).processAnnotatedType(processAnnotatedTypeEvent);
+        try {
+            delegate(moduleName).processAnnotatedType(processAnnotatedTypeEvent);
+        } catch (Exception e) {
+            delegateFailed(e);
+        }
     }
 
     private String getModuleName(final Class<?> javaClass) {
@@ -198,5 +211,12 @@ public class LibertyHibernateValidatorExtension implements Extension, WebSphereC
 
     private ClassLoader createTCCL(ClassLoader parentCL) {
         return AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> getClassLoadingService().createThreadContextClassLoader(parentCL));
+    }
+
+    private void delegateFailed(Exception e) {
+        if (!logggedWarning) {
+            System.out.println("Unable to initialize CDI extensions due to: " + e.getMessage());
+            logggedWarning = true;
+        }
     }
 }
