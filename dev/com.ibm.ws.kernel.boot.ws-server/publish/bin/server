@@ -821,9 +821,20 @@ javaCmd()
   JAVA_CMD_LOG=$1
   shift
 
+  REMAINING_ARGS=""
+  for option in "$@"; do
+    if [[ $option == -D* ]] ; then
+      JVM_OPTIONS_QUOTED="$JVM_OPTIONS_QUOTED '$option'"
+    elif [ -z "$REMAINING_ARGS" ] ; then
+      REMAINING_ARGS="$option"
+    else
+      REMAINING_ARGS="$REMAINING_ARGS $option"
+    fi
+  done
+
   # Set all the parameters for the java command.  We use eval so that each line
   # in jvm.options is treated as a distinct argument.
-  eval "set -- ${JAVA_AGENT_QUOTED} ${JVM_OPTIONS_QUOTED} ${JAVA_DEBUG} ${JVM_ARGS} -jar ${WLP_INSTALL_DIR_QUOTED}/bin/tools/ws-server.jar "'"$@"'
+  eval "set -- ${JAVA_AGENT_QUOTED} ${JVM_OPTIONS_QUOTED} ${JAVA_DEBUG} ${JVM_ARGS} -jar ${WLP_INSTALL_DIR_QUOTED}/bin/tools/ws-server.jar ""$REMAINING_ARGS"
   ARGS="$@"
 
   # Do not add extra logic after the commands without preserving $?
