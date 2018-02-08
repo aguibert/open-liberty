@@ -12,6 +12,8 @@ package com.ibm.ws.session.cache.fat;
 
 import java.net.HttpURLConnection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.junit.Assert;
 import org.junit.runner.RunWith;
@@ -25,12 +27,15 @@ import componenttest.topology.utils.HttpUtils;
 @RunWith(Suite.class)
 @SuiteClasses({
                 SessionCacheTest.class,
-                MultiServerCacheTest.class
+                //MultiServerCacheTest.class
 })
 public class FATSuite {
 
+    private static final Logger log = Logger.getLogger(FATSuite.class.getName());
+
     public static void run(LibertyServer server, String path, String testMethod, List<String> session) throws Exception {
         HttpURLConnection con = HttpUtils.getHttpConnection(server, path + '?' + FATServletClient.TEST_METHOD + '=' + testMethod);
+        log.log(Level.INFO, "Invoking HTTP request: " + con.getURL().toString());
 
         if (session != null)
             for (String cookie : session)

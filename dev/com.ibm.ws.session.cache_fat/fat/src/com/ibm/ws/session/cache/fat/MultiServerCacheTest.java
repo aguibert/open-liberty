@@ -41,6 +41,7 @@ public class MultiServerCacheTest extends FATServletClient {
         appB = new SessionCacheApp(serverB);
         serverB.useSecondaryHTTPPort();
 
+        serverA.debugEnabled = false;
         serverA.startServer();
         serverB.startServer();
     }
@@ -85,20 +86,21 @@ public class MultiServerCacheTest extends FATServletClient {
         appB.invokeServlet("testSessionEmpty", session);
     }
 
-    // @Test // TODO still in progress
+    @Test // TODO still in progress
     public void testMaxSessions() throws Exception {
         List<String> session1 = new ArrayList<>();
         List<String> session2 = new ArrayList<>();
-        appA.sessionPut("testMaxSessions-session1", "hello", session1, true);
-        appB.sessionGet("testMaxSessions-session1", "hello", session1);
+        appA.sessionPut("testMaxSessions", "session1", session1, true);
+        appB.sessionGet("testMaxSessions", "session1", session1);
 
         // Starting a new session should push session1 out of the cache
-        appA.sessionPut("testMaxSessions-session2", "hello2", session2, true);
+        appA.sessionPut("testMaxSessions", "session2", session2, true);
 
         // Verify that session2 is in the server and session1 is not
-        appA.sessionGet("testMaxSessions-session2", "hello2", session2);
-        appB.sessionGet("testMaxSessions-session2", "hello2", session2);
-        appB.sessionGet("testMaxSessions-session1", null, session1);
-        appA.sessionGet("testMaxSessions-session1", null, session1);
+        appA.sessionGet("testMaxSessions", "session2", session2);
+        appB.sessionGet("testMaxSessions", "session2", session2);
+        //appB.sessionGet("testMaxSessions", null, session1);
+        appA.sessionGet("testMaxSessions", null, session1);
+        appB.sessionGet("testMaxSessions", null, session1); // TODO
     }
 }

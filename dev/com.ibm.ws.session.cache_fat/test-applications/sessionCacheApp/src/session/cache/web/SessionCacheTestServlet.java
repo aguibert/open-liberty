@@ -166,6 +166,7 @@ public class SessionCacheTestServlet extends FATServlet {
             System.out.println("Got no session and was expecting null value.");
             return;
         }
+        System.out.println("Session id=" + session.getId());
         String actualValue = (String) session.getAttribute(key);
         System.out.println("Got entry: " + key + '=' + actualValue);
         assertEquals(expectedValue, actualValue);

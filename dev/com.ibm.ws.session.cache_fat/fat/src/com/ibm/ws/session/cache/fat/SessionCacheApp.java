@@ -35,7 +35,7 @@ public class SessionCacheApp {
     }
 
     public void sessionGet(String key, String expectedValue, List<String> session) throws Exception {
-        invokeServlet("sessionGet&key=" + key + "expectedValue=" + expectedValue, session);
+        invokeServlet("sessionGet&key=" + key + "&expectedValue=" + expectedValue, session);
     }
 
 }

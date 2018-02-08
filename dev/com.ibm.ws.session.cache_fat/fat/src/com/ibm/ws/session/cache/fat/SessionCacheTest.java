@@ -75,4 +75,19 @@ public class SessionCacheTest extends FATServletClient {
             app.invalidateSession(session);
         }
     }
+
+    @Test // TODO still in progress
+    public void testMaxSessions() throws Exception {
+        List<String> session1 = new ArrayList<>();
+        List<String> session2 = new ArrayList<>();
+        app.sessionPut("testMaxSessions", "session1", session1, true);
+        app.sessionGet("testMaxSessions", "session1", session1);
+
+        // Starting a new session should push session1 out of the cache
+        app.sessionPut("testMaxSessions", "session2", session2, true);
+
+        // Verify that session2 is in the server and session1 is not
+        app.sessionGet("testMaxSessions", "session2", session2);
+        app.sessionGet("testMaxSessions", null, session1);
+    }
 }
