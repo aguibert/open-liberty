@@ -59,19 +59,21 @@ import componenttest.logging.ffdc.IgnoredFFDCs.IgnoredFFDC;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.impl.LibertyServerFactory;
 import componenttest.topology.impl.LibertyServerWrapper;
-import componenttest.topology.utils.PrivHelper;
 import junit.framework.AssertionFailedError;
 
 public class FATRunner extends BlockJUnit4ClassRunner {
     private static final Class<?> c = FATRunner.class;
 
     // Used to reduce timeouts to a sensible level when FATs are running locally
-    public static final boolean FAT_TEST_LOCALRUN = PrivHelper.getBoolean("fat.test.localrun");
+    public static final boolean FAT_TEST_LOCALRUN = Boolean.getBoolean("fat.test.localrun");
 
     private static final int MAX_FFDC_LINES = 1000;
-    private static final boolean DISABLE_FFDC_CHECKING = PrivHelper.getBoolean("disable.ffdc.checking");
+    private static final boolean DISABLE_FFDC_CHECKING = Boolean.getBoolean("disable.ffdc.checking");
 
-    private static final boolean ENABLE_TMP_DIR_CHECKING = PrivHelper.getBoolean("enable.tmpdir.checking");
+    public static final long MAX_ALLOWED_TRACE = 1024000 * Integer.getInteger("fat.max.allowed.trace.mb", 50); // 50 MB default, override w/ system prop
+    private static long USED_TRACE = 0;
+
+    private static final boolean ENABLE_TMP_DIR_CHECKING = Boolean.getBoolean("enable.tmpdir.checking");
     private static final long TMP_DIR_SIZE_THRESHOLD = 20 * 1024; // 20k
 
     //list of filters to apply
@@ -88,6 +90,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
     static {
         Log.info(c, "<clinit>", "System property: fat.test.localrun=" + FAT_TEST_LOCALRUN);
         Log.info(c, "<clinit>", "Using filters " + Arrays.toString(testFiltersToApply));
+        Log.info(c, "<clinit>", "Max allowed trace: " + (MAX_ALLOWED_TRACE / 1024000) + "MB");
     }
 
     public static void requireFATRunner(String className) {
@@ -95,6 +98,10 @@ public class FATRunner extends BlockJUnit4ClassRunner {
             throw new IllegalStateException("The class " + className + " is attempting to use functionality " +
                                             "that requires @RunWith(FATRunner.class) to be specified at the " +
                                             "class level.");
+    }
+
+    public static void measureUsedTrace(long traceFileLength) {
+        USED_TRACE += traceFileLength;
     }
 
     private boolean hasTests = true;
@@ -330,6 +337,11 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                         blowup("A problem was detected during post-test tidy up. New FFDC file is generated. Please check the log directory. The beginning of the FFDC file is:\n"
                                + ffdcHeader);
                     }
+
+                    Log.info(c, "classBlock", "So far this FAT has used " + (USED_TRACE / 1024000) + "MB of trace.");
+                    if (USED_TRACE > MAX_ALLOWED_TRACE)
+                        throw new IllegalStateException("This FAT has used up too much trace!  The maximum allowed trace is " + (MAX_ALLOWED_TRACE / 1024000) +
+                                                        "MB but so far this FAT has logged " + (USED_TRACE / 1024000) + "MB of trace.");
                 }
             }
         };
