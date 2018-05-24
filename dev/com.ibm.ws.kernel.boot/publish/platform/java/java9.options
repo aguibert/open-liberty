@@ -1,5 +1,3 @@
---add-modules
-java.se.ee
 ### Exports
 # JMX Agent in LocalConnectorActivator
 --add-exports
