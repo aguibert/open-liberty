@@ -40,6 +40,7 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 
+import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.ExternalTestService;
 
@@ -52,6 +53,24 @@ public class MongoServerSelector {
     private final LibertyServer _server;
     private final ServerConfiguration serverConfig;
     private final Map<String, List<MongoElement>> mongoElements = new HashMap<String, List<MongoElement>>();
+
+    private static class MongoServer {
+        public final String address;
+        public final int port;
+        public final Map<String, String> props;
+        public ExternalTestService svc;
+
+        public MongoServer(ExternalTestService svc) {
+            this(svc.getAddress(), svc.getPort(), svc.getProperties());
+            this.svc = svc;
+        }
+
+        public MongoServer(String address, int port, Map<String, String> props) {
+            this.address = address;
+            this.port = port;
+            this.props = props;
+        }
+    }
 
     public MongoServerSelector(LibertyServer server) throws Exception {
         _server = server;
@@ -75,9 +94,10 @@ public class MongoServerSelector {
      */
     private void updateLibertyServerMongos() throws Exception {
         for (String serverPlaceholder : getMongoElements().keySet()) {
-            ExternalTestService mongoTestService = getAvailableMongoServer(serverPlaceholder);
+            MongoServer mongoTestService = getAvailableMongoServer(serverPlaceholder);
             updateMongoElements(serverPlaceholder, mongoTestService);
-            extractFiles(serverPlaceholder, mongoTestService);
+            if (mongoTestService.svc != null)
+                extractFiles(serverPlaceholder, mongoTestService.svc);
         }
         _server.updateServerConfiguration(serverConfig);
     }
@@ -122,15 +142,15 @@ public class MongoServerSelector {
      *
      * @param availableMongoServer
      */
-    private void updateMongoElements(String serverPlaceholder, ExternalTestService mongoService) {
-        Integer[] port = { Integer.valueOf(mongoService.getPort()) };
+    private void updateMongoElements(String serverPlaceholder, MongoServer mongoService) {
+        Integer[] port = { Integer.valueOf(mongoService.port) };
         for (MongoElement mongo : mongoElements.get(serverPlaceholder)) {
-            mongo.setHostNames(mongoService.getAddress());
+            mongo.setHostNames(mongoService.address);
             mongo.setPorts(port);
 
             String user = mongo.getUser();
             if (user != null) {
-                String replacementPassword = mongoService.getProperties().get(user + "_password");
+                String replacementPassword = mongoService.props.get(user + "_password");
                 if (replacementPassword != null) {
                     mongo.setPassword(replacementPassword);
                 }
@@ -164,17 +184,23 @@ public class MongoServerSelector {
         }
     }
 
-    private static ExternalTestService getAvailableMongoServer(String serverPlaceholder) {
+    private static MongoServer getAvailableMongoServer(String serverPlaceholder) {
         try {
             while (true) {
                 ExternalTestService mongoService = ExternalTestService.getService(serverPlaceholder);
+                MongoServer server = new MongoServer(mongoService);
                 if (validateMongoConnection(mongoService)) {
-                    return mongoService;
+                    return server;
                 }
             }
         } catch (Exception e) {
-            // Thrown when there are no more services to try
-            throw new RuntimeException(e);
+            if (FATRunner.FAT_TEST_LOCALRUN) {
+                Map<String, String> props = new HashMap<>();
+                props.put("user_password", "password");
+                return new MongoServer("localhost", 27017, props);
+            } else
+                // Thrown when there are no more services to try
+                throw new RuntimeException(e);
         }
     }
 

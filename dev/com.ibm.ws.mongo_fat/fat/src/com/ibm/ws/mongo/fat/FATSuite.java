@@ -12,9 +12,6 @@ package com.ibm.ws.mongo.fat;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
@@ -26,23 +23,13 @@ import componenttest.topology.impl.LibertyServer;
 @RunWith(Suite.class)
 @SuiteClasses({
                 MongoBasicTest.class,
-                MongoSSLTest.class,
-                MongoDefaultSSLTest.class,
-                MongoConfigUpdateTest.class
+//                MongoSSLTest.class,
+//                MongoDefaultSSLTest.class,
+//                MongoConfigUpdateTest.class
 })
 public class FATSuite {
 
     public static final String APP_NAME = "mongo";
-    public static String HOST_NAME;
-
-    static {
-        try {
-            HOST_NAME = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            HOST_NAME = "localhost-" + System.nanoTime();
-        }
-    }
 
     public static void createApp(LibertyServer server) throws Exception {
         ShrinkHelper.defaultApp(server, APP_NAME, "fat.mongo.web");
