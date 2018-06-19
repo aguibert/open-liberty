@@ -303,3 +303,9 @@ org.springframework:spring-webmvc:4.3.13.RELEASE
 xalan:xalan:2.7.1
 xerces:xercesImpl:2.11.0
 commons-collections:commons-collections:3.2.2
+junk.com.ibm.ws.org.eclipse.persistence:org.eclipse.persistence.jpa.antlr:2.6.6.WAS-fc83a80
+junk.com.ibm.ws.org.eclipse.persistence:org.eclipse.persistence.jpa.asm:2.6.6.WAS-fc83a80
+junk.com.ibm.ws.org.eclipse.persistence:org.eclipse.persistence.core:2.6.6.WAS-fc83a80
+junk.com.ibm.ws.org.eclipse.persistence:org.eclipse.persistence.jpa.jpql:2.6.6.WAS-fc83a80
+junk.com.ibm.ws.org.eclipse.persistence:org.eclipse.persistence.jpa.modelgen:2.6.6.WAS-fc83a80
+junk.com.ibm.ws.org.eclipse.persistence:org.eclipse.persistence.jpa:2.6.6.WAS-fc83a80
