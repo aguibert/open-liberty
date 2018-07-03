@@ -10,20 +10,20 @@
  *******************************************************************************/
 package com.ibm.ws.javaee.v80.fat;
 
-import javax.servlet.http.HttpServlet;
-
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
+
+import com.ibm.websphere.simplicity.ShrinkHelper;
 
 import componenttest.annotation.Server;
 import componenttest.annotation.TestServlet;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
-
-// import testservlet40.web.servlets.SimpleClassesServlet;
-import testservlet40.jar.servlets.SimpleFragmentServlet;
+import javaee8.web.WebProfile8TestServlet;
 
 /**
  * Test of Application 8 and Servlet 4 parsing using the 'webProfile-8.0'
@@ -35,30 +35,26 @@ import testservlet40.jar.servlets.SimpleFragmentServlet;
  *
  * The expected test result is that the EAR and WAR start with no errors.
  *
- * The WAR packages a fragment JAR.  Both the WAR and the fragment JAR
+ * The WAR packages a fragment JAR. Both the WAR and the fragment JAR
  * package a servlet (SimpleClassesServlet and SimpleFragmentServlet),
  * however, the test only configures the fragment servlet.
  */
 @RunWith(FATRunner.class)
-public class WebProfileSimpleEarTest extends FATServletClient implements FATAppConstants {
+public class WebProfileTest extends FATServletClient {
 
-    @Server(JAVA8_WEB_SIMPLE_EAR_SERVER_NAME)
-    @TestServlet(servlet = SimpleFragmentServlet.class,
-                 contextRoot = SIMPLE_WAR_CONTEXT_ROOT)
+    public static final String APP_NAME = "javaee8App";
+
+    @Server("javaee8.fat.webProfile")
+    @TestServlet(servlet = WebProfile8TestServlet.class, contextRoot = APP_NAME)
     public static LibertyServer server;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        FATServerHelper.addToServer(
-            server, FATServerHelper.DROPINS_DIR,
-            SIMPLE_EAR_NAME, SIMPLE_EAR_ADD_RESOURCES,
-            SIMPLE_WAR_NAME, SIMPLE_WAR_PACKAGE_NAMES, SIMPLE_WAR_ADD_RESOURCES,
-            SIMPLE_JAR_NAME, SIMPLE_JAR_PACKAGE_NAMES, SIMPLE_JAR_ADD_RESOURCES);
-        // throws Exception
-
+        EnterpriseArchive ear = ShrinkWrap.create(EnterpriseArchive.class, "javaee8Ear.ear")
+                        .addAsModule(ShrinkHelper.buildDefaultApp(APP_NAME, "javaee8.web.*"));
+        ShrinkHelper.addDirectory(ear, "test-applications/javaee8Ear/resources/");
+        ShrinkHelper.exportDropinAppToServer(server, ear);
         server.startServer();
-
-        server.waitForStringInLog("CWWKZ0001I.* " + SIMPLE_WAR_NAME, 10000);
     }
 
     @AfterClass
