@@ -17,6 +17,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientException;
 import java.util.Arrays;
@@ -29,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Properties;
+import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -364,6 +368,24 @@ public class JDBCDriverService extends Observable implements LibraryChangeListen
              || null != (className = JDBCDrivers.getXADataSourceClassName(vendorPropertiesPID))
              || null != (className = JDBCDrivers.getXADataSourceClassName(getClasspath(sharedLib, true))))
                 return create(XADataSource.class, className, props);
+            
+            System.out.println("@AGG attempting to create synthetic DS..."); // TODO @AGG
+            System.out.println("@AGG props=" + props);
+            ClassLoader cl = getClassLoaderForLibraryRef();
+            for(Driver driver : ServiceLoader.load(Driver.class, cl)) {
+                System.out.println("  driver=" + driver);
+                String url = (String) props.get("url");
+                if (url == null)
+                    url = (String) props.get("URL");
+                if(url == null)
+                    continue;
+                System.out.println("URL=" + url);
+                SyntheticDataSource ds = new SyntheticDataSource();
+                ds.setDriver(driver);
+                ds.setURL(url);
+                ds.setProperties(props);
+                return ds;
+            }
 
             throw classNotFound(null);
         } finally {
