@@ -1,0 +1,1 @@
+-Xdump:system+java:events=systhrow,filter=java/lang/IllegalAccessError
