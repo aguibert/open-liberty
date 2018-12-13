@@ -108,6 +108,13 @@ task apiSpiJavadoc(type: Javadoc) {
   if (JavaVersion.current().isJava8Compatible()) {
     options.addStringOption('Xdoclint:none', '-quiet')
   }
+  doLast {
+    // Java 8 Javadoc outputs a package list in an 'package-list' file but Java 9+ outputs
+    // the same information in an 'element-list' file. Dup the file to 'package-list' on Java 9+
+    if (JavaVersion.current().isJava9Compatible()) {
+      ant.copy file: "${buildDir}/javadoc/element-list", toFile: "${buildDir}/javadoc/package-list"
+    }
+  }
 }
 
 task zipJavadoc(type: Zip) {
