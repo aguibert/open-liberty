@@ -12,6 +12,8 @@ package com.ibm.ws.cdi.mp.context;
 
 import static java.util.Collections.emptySet;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
 
 import javax.enterprise.context.ConversationScoped;
@@ -20,6 +22,8 @@ import javax.enterprise.context.SessionScoped;
 
 import org.jboss.weld.context.WeldAlterableContext;
 import org.jboss.weld.context.api.ContextualInstance;
+import org.jboss.weld.contexts.AbstractBoundContext;
+import org.jboss.weld.contexts.beanstore.BoundBeanStore;
 import org.jboss.weld.manager.api.WeldManager;
 
 import com.ibm.websphere.ras.annotation.Trivial;
@@ -36,11 +40,13 @@ public class ContextualInstanceSnapshot {
     public final WeldAlterableContext sesCtx;
     public final WeldAlterableContext conCtx;
 
+    public BoundBeanStore reqStore;
     public final Collection<ContextualInstance<?>> reqInstances;
     public final Collection<ContextualInstance<?>> sesInstances;
     public final Collection<ContextualInstance<?>> conInstances;
 
     private ContextualInstanceSnapshot() {
+        reqStore = null;
         reqInstances = sesInstances = conInstances = emptySet();
         reqCtx = sesCtx = conCtx = null;
     }
@@ -55,6 +61,17 @@ public class ContextualInstanceSnapshot {
         for (WeldAlterableContext ctx : manager.getActiveWeldAlterableContexts()) {
             Class<?> scope = ctx.getScope();
             if (scope == RequestScoped.class) {
+                try {
+                    System.out.println("@AGG all          methods are: " + Arrays.toString(ctx.getClass().getMethods()));
+                    System.out.println("@AGG all declared methods are: " + Arrays.toString(AbstractBoundContext.class.getDeclaredMethods()));
+                    Method getBeanStore = AbstractBoundContext.class.getDeclaredMethod("getBeanStore");
+                    getBeanStore.setAccessible(true);
+                    BoundBeanStore store = (BoundBeanStore) getBeanStore.invoke(ctx);
+                    System.out.println("@AGG found bean store: " + store);
+                    reqStore = store;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 reqInstances = ctx.getAllContextualInstances();
                 reqContext = ctx;
             } else if (scope == SessionScoped.class) {
@@ -81,10 +98,10 @@ public class ContextualInstanceSnapshot {
                         .append(this.reqInstances)
                         .append('\n')
                         .append("SessionScoped instances = ")
-                        .append(this.reqInstances)
+                        .append(this.sesInstances)
                         .append('\n')
                         .append("ConversationScoped instances = ")
-                        .append(this.reqInstances);
+                        .append(this.conInstances);
         return sb.toString();
     }
 }

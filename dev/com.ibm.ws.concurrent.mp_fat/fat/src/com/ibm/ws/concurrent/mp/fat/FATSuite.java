@@ -16,11 +16,11 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-                MPConcurrentTest.class,
+//                MPConcurrentTest.class,
                 MPConcurrentCDITest.class,
-                MPConcurrentConfigTest.class,
-                MPConcurrentJAXRSTest.class,
-                MPConcurrentTxTest.class
+//                MPConcurrentConfigTest.class,
+//                MPConcurrentJAXRSTest.class,
+//                MPConcurrentTxTest.class
 })
 public class FATSuite {
 }

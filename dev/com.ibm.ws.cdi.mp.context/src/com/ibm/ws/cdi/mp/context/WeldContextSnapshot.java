@@ -10,16 +10,20 @@
  *******************************************************************************/
 package com.ibm.ws.cdi.mp.context;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.microprofile.context.spi.ThreadContextController;
 import org.eclipse.microprofile.context.spi.ThreadContextSnapshot;
+import org.jboss.weld.context.WeldAlterableContext;
 import org.jboss.weld.context.bound.BoundConversationContext;
 import org.jboss.weld.context.bound.BoundLiteral;
 import org.jboss.weld.context.bound.BoundRequestContext;
 import org.jboss.weld.context.bound.BoundSessionContext;
 import org.jboss.weld.context.bound.MutableBoundRequest;
+import org.jboss.weld.contexts.AbstractBoundContext;
+import org.jboss.weld.contexts.beanstore.BoundBeanStore;
 import org.jboss.weld.manager.api.WeldManager;
 
 import com.ibm.websphere.ras.Tr;
@@ -60,11 +64,23 @@ public class WeldContextSnapshot implements ThreadContextSnapshot {
         Map<String, Object> requestMap = new HashMap<>();
         Map<String, Object> sessionMap = new HashMap<>();
         if (existingContexts.reqCtx != null) {
-            existingContexts.reqCtx.clearAndSet(contextToApply.reqInstances);
+            //existingContexts.reqCtx.clearAndSet(contextToApply.reqInstances);
+            try {
+                setBeanStore(existingContexts.reqCtx, contextToApply.reqStore);
+                System.out.println("@AGG set bean store 1");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             requestCtx.associate(requestMap);
             requestCtx.activate();
-            requestCtx.clearAndSet(contextToApply.reqInstances);
+            //requestCtx.clearAndSet(contextToApply.reqInstances);
+            try {
+                setBeanStore(requestCtx, contextToApply.reqStore);
+                System.out.println("@AGG set bean store 2");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         if (existingContexts.sesCtx != null) {
@@ -85,9 +101,15 @@ public class WeldContextSnapshot implements ThreadContextSnapshot {
 
         return () -> {
             // This will run after a task has executed and will clean up the CDI context
-            if (existingContexts.reqCtx != null)
-                existingContexts.reqCtx.clearAndSet(existingContexts.reqInstances);
-            else
+            if (existingContexts.reqCtx != null) {
+                //existingContexts.reqCtx.clearAndSet(existingContexts.reqInstances);
+                try {
+                    setBeanStore(existingContexts.reqCtx, existingContexts.reqStore);
+                    System.out.println("@AGG restored bean store");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else
                 requestCtx.deactivate();
 
             if (existingContexts.sesCtx != null)
@@ -100,5 +122,16 @@ public class WeldContextSnapshot implements ThreadContextSnapshot {
             else
                 conversationCtx.deactivate();
         };
+    }
+
+    private void setBeanStore(WeldAlterableContext ctx, BoundBeanStore store) {
+        try {
+            Method setBeanStore = AbstractBoundContext.class.getDeclaredMethod("setBeanStore", BoundBeanStore.class);
+            setBeanStore.setAccessible(true);
+            setBeanStore.invoke(ctx, store);
+            System.out.println("@AGG restored bean store");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
