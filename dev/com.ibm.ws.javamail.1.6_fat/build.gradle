@@ -16,9 +16,9 @@ dependencies {
                'org.slf4j:slf4j-jdk14:1.7.7',
                'com.sun.mail:javax.mail:1.6.2',
                // Deps needed for when running on Java 9 (EE-type APIs were removed from JDK)
-               'com.ibm.ws.org.apache.yoko:yoko-spec-corba:1.5.+',
+               'com.ibm.ws.org.apache.yoko:yoko-spec-corba:1.5.0.31ef0b15cf',
                'javax.activation:activation:1.1',
-               'javax.xml.bind:jaxb-api:2.2.+',
-               'com.sun.xml.bind:jaxb-core:2.2.+',
-               'com.sun.xml.bind:jaxb-impl:2.2.+'
+               'javax.xml.bind:jaxb-api:2.2.10',
+               'com.sun.xml.bind:jaxb-core:2.2.10',
+               'com.sun.xml.bind:jaxb-impl:2.2.10'
 }

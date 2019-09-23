@@ -14,7 +14,7 @@ configurations {
 }
 
 dependencies {
-  appLibs 'javax.xml.bind:jaxb-api:2.2.+'
+  appLibs 'javax.xml.bind:jaxb-api:2.2.10'
 }
 
 task addAppLibs(type: Copy) {
